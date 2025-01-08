@@ -42,11 +42,11 @@ export class GameEngine {
     }
 
     gameLoop() {
-        this.dt = Math.min(this.clock.getDelta(), 1/20);
+        this.dt = Math.min(this.clock.getDelta(), 1/20); // prevents big time jumps when changing tabs
 
         this.entities.forEach(e => e.update());
 
-        for (let i = this.entities.length - 1; i > 0; i--) {
+        for (let i = this.entities.length - 1; i >= 0; i--) {
             if (this.entities[i].removeFromWorld) {
                 this.entities[i].disposeMesh();
                 this.entities.splice(i, 1);

@@ -17,9 +17,10 @@ export class Entity {
         console.log('created entity at index ' + (engine.entities.length - 1));
     }
 
-    update() {
-        // Implement entity update logic here
-    }
+    /**
+     * is called every frame
+     */
+    update() {}
 
     addSubMesh(subMesh) {
         this.subMeshes.push(subMesh);

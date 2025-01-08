@@ -7,6 +7,16 @@ export const engine = new GameEngine(function () {
 
 	// demo code
 
+	/*
+	some notes:
+	- for some reason three.js doesn't work when you try to directly open the html file, so id recommend getting the 'live server' extension on vscode to run it
+	- three.js docs -> https://threejs.org/docs/
+	- all the 'demo' code is within this function (besides a little bit in the asset manager)
+	- in the real game we should usually make classes that inherit from entity rather than modifing instances like i do here
+	- this engine is not final but is hopefully its pretty close hopefully
+	
+	*/
+
 	const asteroidTexture = engine.getTexture('asteroid');
 	asteroidTexture.wrapS = THREE.RepeatWrapping;
 	asteroidTexture.wrapT = THREE.RepeatWrapping;
@@ -118,6 +128,7 @@ export const engine = new GameEngine(function () {
 
 
 	const hudManager = new Entity(null);
+	engine.overlay.style.cursor = 'none';
 	hudManager.bigcircle = document.createElement("div");
 	hudManager.bigcircle.style.cssText = "display:inline-block; width:250px; height:250px; border-radius:125px;border-color:rgba(255,255,255,.5);border-style: solid;border-width: medium;";
 	engine.overlay.appendChild(hudManager.bigcircle);

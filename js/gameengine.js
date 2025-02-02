@@ -24,13 +24,21 @@ export class GameEngine {
 
         window.addEventListener("keydown", event => this.keys[event.key] = true);
         window.addEventListener("keyup", event => this.keys[event.key] = false);
-        window.addEventListener("mousedown", event => this.keys['m' + event.button] = true);
+        window.addEventListener("mousedown", event => {
+            event.preventDefault();
+            this.keys['m' + event.button] = true;
+        });
         window.addEventListener("mouseup", event => this.keys['m' + event.button] = false);
         
         window.addEventListener( 'mousemove', (function(e) {
+            e.preventDefault();
             this.keys['mouseX'] = e.clientX;
             this.keys['mouseY'] = e.clientY;
         }).bind(this), false );
+
+        window.addEventListener( 'blur', (e) => {
+            this.keys = {};
+        });
 
         callback();
     }
@@ -66,6 +74,15 @@ export class GameEngine {
     }
 
     playSound(name) {
-        //todo
+        let audio = this.assetManager.audio[name];
+        if (audio.currentTime != 0) {
+            let bak = audio.cloneNode();
+            bak.currentTime = 0;
+            bak.volume = audio.volume;
+            bak.play();
+        } else {
+            audio.currentTime = 0;
+            audio.play();
+        }
     }
 }

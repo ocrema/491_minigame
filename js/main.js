@@ -5,28 +5,29 @@ import * as Util from './util.js';
 
 export const engine = new GameEngine(function () {
 
-	// demo code
-
-	/*
-	some notes:
-	- for some reason three.js doesn't work when you try to directly open the html file, so id recommend getting the 'live server' extension on vscode to run it
-	- three.js docs -> https://threejs.org/docs/
-	- all the 'demo' code is within this function (besides a little bit in the asset manager)
-	- in the real game we should usually make classes that inherit from entity rather than modifing instances like i do here
-	- this engine is not final but is hopefully its pretty close hopefully
-	
-	*/
 
 	const asteroidTexture = engine.getTexture('asteroid');
 	asteroidTexture.wrapS = THREE.RepeatWrapping;
 	asteroidTexture.wrapT = THREE.RepeatWrapping;
 	asteroidTexture.repeat.set(2, 2);
-	const asteroid = new Entity(new THREE.Mesh(new THREE.SphereGeometry(1, 8, 8), new THREE.MeshLambertMaterial({ map: asteroidTexture })));
-	asteroid.update = function () {
-		this.rotation.x += .1 * engine.dt;
-		this.rotation.y += .2 * engine.dt;
-	};
 
+	const asteroids = [];
+	for (let i = 0; i < 50; i++) {
+		const asteroid = new Entity(new THREE.Mesh(new THREE.SphereGeometry(1, 8, 8), new THREE.MeshLambertMaterial({ map: asteroidTexture })));
+		asteroid.position.set(Math.random() * 100 - 50, Math.random() * 100 - 50, Math.random() * 100 - 50);
+		asteroid.scale = Math.random() * 3 + 0.5;
+		asteroid.mesh.scale.set(asteroid.scale, asteroid.scale, asteroid.scale);
+		asteroid.xRotateSpeed = Math.random() * .4 - .2;
+		asteroid.yRotateSpeed = Math.random() * .4 - .2;
+		asteroid.zRotateSpeed = Math.random() * .4 - .2;
+		asteroid.update = function () {
+			this.rotation.x += this.xRotateSpeed * engine.dt;
+			this.rotation.y += this.yRotateSpeed * engine.dt;
+			this.rotation.z += this.zRotateSpeed * engine.dt;
+		};
+		asteroids.push(asteroid);
+	}
+	
 
 	const spaceship = new Entity(engine.getModel('spaceship'));
 	spaceship.mesh.scale.set(0.2, 0.2, 0.2);
@@ -62,6 +63,7 @@ export const engine = new GameEngine(function () {
 		if (this.lazerCooldown > 0) this.lazerCooldown -= engine.dt;
 		if (this.lazerCooldown <= 0 && engine.keys['m0']) {
 			this.lazerCooldown = this.lazerMaxCooldown;
+			engine.playSound('lazer');
 
 			const lazerMesh = new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,2,16), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
 			lazerMesh.rotation.copy(this.rotation);

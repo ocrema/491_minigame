@@ -17,7 +17,7 @@ export class AssetManager {
             {name: 'space', url:'textures/space.jpg'},
         ];
         let audioList = [
-
+            {name: 'lazer', url:'sfx/lazer.mp3'},
         ];
         let assetsToLoad = modelList.length + textureList.length + audioList.length;
         let gtlfLoader = new GLTFLoader();
@@ -38,7 +38,20 @@ export class AssetManager {
             }).bind(this));
         }
         for (let info of audioList) {
-            // todo
+            this.audio[info.name] = new Audio();
+
+            this.audio[info.name].addEventListener("loadeddata", function () {
+                console.log('loaded audio "' + info.name + '" from ' + info.url);
+                assetsToLoad--;
+            });
+
+            this.audio[info.name].addEventListener("ended", function () {
+                this.audio[info.name].pause();
+                this.audio[info.name].currentTime = 0;
+            });
+
+            this.audio[info.name].src = info.url;
+            this.audio[info.name].load();
         }
 
         const waitFunc = function() {

@@ -18,6 +18,7 @@ export class AssetManager {
         ];
         let audioList = [
             {name: 'lazer', url:'sfx/lazer.mp3'},
+            {name: 'asteroid_break', url:'sfx/asteroid_break.wav'},
         ];
         let assetsToLoad = modelList.length + textureList.length + audioList.length;
         let gtlfLoader = new GLTFLoader();

@@ -22,8 +22,8 @@ export class GameEngine {
         this.renderer.setAnimationLoop( this.gameLoop.bind(this) );
         document.body.appendChild( this.renderer.domElement );
 
-        window.addEventListener("keydown", event => this.keys[event.key] = true);
-        window.addEventListener("keyup", event => this.keys[event.key] = false);
+        window.addEventListener("keydown", event => this.keys[event.key.toLowerCase()] = true);
+        window.addEventListener("keyup", event => this.keys[event.key.toLowerCase()] = false);
         window.addEventListener("mousedown", event => {
             event.preventDefault();
             this.keys['m' + event.button] = true;
@@ -73,8 +73,9 @@ export class GameEngine {
         return this.assetManager.models[name].clone();
     }
 
-    playSound(name) {
+    playSound(name, volumeMult = 1) {
         let audio = this.assetManager.audio[name];
+        audio.volume = volumeMult * .3;
         if (audio.currentTime != 0) {
             let bak = audio.cloneNode();
             bak.currentTime = 0;

@@ -5,6 +5,7 @@ import * as Util from './util.js';
 
 export const engine = new GameEngine(function () {
 
+	let score = 0;
 
 	const asteroidTexture = engine.getTexture('asteroid');
 	asteroidTexture.wrapS = THREE.RepeatWrapping;
@@ -37,9 +38,9 @@ export const engine = new GameEngine(function () {
 	spaceship.update = function () {
 
 		const maxTurnSpeed = 1.5;
-		const controlDeadzoneRadius = .2;
+		const controlDeadzoneRadius = .07;
 		const controlMaxRadius = .7;
-		const forwardSpeed = 5;
+		const forwardSpeed = 10;
 		const speed = 2;
 		const mouseX = engine.keys['mouseX'] - window.innerWidth/2;
 		const mouseY = engine.keys['mouseY'] - window.innerHeight/2;
@@ -53,11 +54,12 @@ export const engine = new GameEngine(function () {
 
 		if (engine.keys['e']) Util.rotateZNoGBL(this.rotation, maxTurnSpeed * engine.dt);
 		if (engine.keys['q']) Util.rotateZNoGBL(this.rotation, maxTurnSpeed * engine.dt * -1);
-		if (engine.keys['w']) this.position.add(new THREE.Vector3(0,0,1).applyEuler(this.rotation).multiplyScalar(forwardSpeed * engine.dt));
+		if (engine.keys['shift']) this.position.add(new THREE.Vector3(0,0,1).applyEuler(this.rotation).multiplyScalar(forwardSpeed * engine.dt));
+		else if (engine.keys['w']) this.position.add(new THREE.Vector3(0,0,1).applyEuler(this.rotation).multiplyScalar(speed * engine.dt));
 		if (engine.keys['s']) this.position.add(new THREE.Vector3(0,0,1).applyEuler(this.rotation).multiplyScalar(speed * engine.dt * -1));
 		if (engine.keys['a']) this.position.add(new THREE.Vector3(1,0,0).applyEuler(this.rotation).multiplyScalar(speed * engine.dt));
 		if (engine.keys['d']) this.position.add(new THREE.Vector3(1,0,0).applyEuler(this.rotation).multiplyScalar(speed * engine.dt * -1));
-		if (engine.keys['Shift']) this.position.add(new THREE.Vector3(0,1,0).applyEuler(this.rotation).multiplyScalar(speed * engine.dt * -1));
+		if (engine.keys['control']) this.position.add(new THREE.Vector3(0,1,0).applyEuler(this.rotation).multiplyScalar(speed * engine.dt * -1));
 		if (engine.keys[' ']) this.position.add(new THREE.Vector3(0,1,0).applyEuler(this.rotation).multiplyScalar(speed * engine.dt));
 
 		if (this.lazerCooldown > 0) this.lazerCooldown -= engine.dt;
@@ -72,17 +74,30 @@ export const engine = new GameEngine(function () {
 			const lazer2 = new Entity(lazerMesh);
 			lazer1.position.add(new THREE.Vector3(.7, 0, 1.2).applyEuler(this.rotation));
 			lazer2.position.add(new THREE.Vector3(-.7, 0, 1.2).applyEuler(this.rotation));
-			Util.rotateXNoGBL(lazer1.rotation, Math.PI/2);
-			Util.rotateXNoGBL(lazer2.rotation, Math.PI/2);
-			lazer1.timer = 3;
-			lazer2.timer = 3;
-			const lazerUpdateFunc = function() {
-				this.timer -= engine.dt;
-				this.position.add(new THREE.Vector3(0,1,0).applyEuler(this.rotation).multiplyScalar(100 * engine.dt));
-                if (this.timer <= 0) this.removeFromWorld = true;
+
+			for (const lazer of [lazer1, lazer2]) {
+				Util.rotateXNoGBL(lazer.rotation, Math.PI/2);
+				lazer.timer = 3;
+
+				Util.rotateZNoGBL(lazer.rotation, (mouseX / (window.innerHeight/2)) * Math.PI/4);
+				Util.rotateXNoGBL(lazer.rotation, (mouseY / (window.innerHeight/2)) * Math.PI/4);
+
+				lazer.update = function() {
+					this.timer -= engine.dt;
+					this.position.add(new THREE.Vector3(0,1,0).applyEuler(this.rotation).multiplyScalar(100 * engine.dt));
+					if (this.timer <= 0) this.removeFromWorld = true;
+
+					for (let i = asteroids.length - 1; i >= 0; i--) {
+						if (this.position.distanceTo(asteroids[i].position) < asteroids[i].scale + 1) {
+							asteroids[i].removeFromWorld = true;
+							this.removeFromWorld = true;
+							asteroids.splice(i, 1);
+							engine.playSound('asteroid_break', .5);
+							score += 100;
+						}
+					}
+				}
 			}
-			lazer1.update = lazerUpdateFunc;
-			lazer2.update = lazerUpdateFunc;
 		}
 	};
 
@@ -106,7 +121,7 @@ export const engine = new GameEngine(function () {
 	const backgroundTexture = engine.getTexture("space");
 	backgroundTexture.wrapS = THREE.RepeatWrapping;
 	backgroundTexture.wrapT = THREE.RepeatWrapping;
-	backgroundTexture.repeat.set(2, 2);
+	backgroundTexture.repeat.set(3, 2);
 
 	const backgroundMaterial = new THREE.MeshBasicMaterial({
 		map: backgroundTexture,
@@ -114,7 +129,7 @@ export const engine = new GameEngine(function () {
 	});
 	backgroundMaterial.depthTest = false;
 
-	const backgroundMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 10), backgroundMaterial);
+	const backgroundMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 5), backgroundMaterial);
 	backgroundMesh.renderOrder = -999;
 	backgroundMesh.frustumCulled = false;
 
@@ -137,9 +152,9 @@ export const engine = new GameEngine(function () {
 	hudManager.smallcircle = document.createElement("div");
 	hudManager.smallcircle.style.cssText = "position:absolute; top:0; left:0; width:30px; height:30px; border-radius:15px; border-color:rgba(255,255,255,.5);border-style: solid;border-width: medium;";
 	engine.overlay.appendChild(hudManager.smallcircle);
-	hudManager.fpsDisplay = document.createElement("p");
-	hudManager.fpsDisplay.style.cssText = "position:absolute; top:0; left:10px; font-size:20px; color:white;";
-	engine.overlay.appendChild(hudManager.fpsDisplay);
+	hudManager.score = document.createElement("p");
+	hudManager.score.style.cssText = "position:absolute; top:0; left:10px; font-size:60px; color:white;font-family: Verdana, Geneva, Tahoma, sans-serif;";
+	engine.overlay.appendChild(hudManager.score);
 	hudManager.update = function () {
 		this.bigcircle.style.width = window.innerHeight * .2 + 'px';
 		this.bigcircle.style.height = window.innerHeight * .2 + 'px';
@@ -148,7 +163,7 @@ export const engine = new GameEngine(function () {
 		this.smallcircle.style.top = engine.keys['mouseY'] - 15 + "px";
 		this.smallcircle.style.left = engine.keys['mouseX'] - 15 + "px";
 
-		this.fpsDisplay.textContent = "FPS: " + Math.round(1 / engine.dt);
+		this.score.textContent = "Score: " + score;
     };
 });
 

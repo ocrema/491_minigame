@@ -169,8 +169,8 @@ export const engine = new GameEngine(function () {
 	}
 
 
-	const amblight = new Entity(new THREE.AmbientLight(0xffffffff, .5));
-	const sunlight = new Entity(new THREE.DirectionalLight(0xaaffffff, 2)).position.set(1, 1, 0);
+	const amblight = new Entity(new THREE.AmbientLight(0xffffff, .5));
+	const sunlight = new Entity(new THREE.DirectionalLight(0xffffee, 2)).position.set(1, 1, 0);
 
 
 	const hudManager = new Entity(null);

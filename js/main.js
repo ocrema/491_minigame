@@ -13,9 +13,9 @@ export const engine = new GameEngine(function () {
 	asteroidTexture.repeat.set(2, 2);
 
 	const asteroids = [];
-	for (let i = 0; i < 50; i++) {
+	for (let i = 0; i < 100; i++) {
 		const asteroid = new Entity(new THREE.Mesh(new THREE.SphereGeometry(1, 8, 8), new THREE.MeshLambertMaterial({ map: asteroidTexture })));
-		asteroid.position.set(Math.random() * 100 - 50, Math.random() * 100 - 50, Math.random() * 100 - 50);
+		asteroid.position.set(Math.random() * 200 - 100, Math.random() * 200 - 100, Math.random() * 200 - 100);
 		asteroid.scale = Math.random() * 3 + 0.5;
 		asteroid.mesh.scale.set(asteroid.scale, asteroid.scale, asteroid.scale);
 		asteroid.xRotateSpeed = Math.random() * .4 - .2;
@@ -35,13 +35,15 @@ export const engine = new GameEngine(function () {
 	spaceship.position.add(new THREE.Vector3(0, 0, 2));
 	spaceship.lazerCooldown = 0;
 	spaceship.lazerMaxCooldown = .15;
+	spaceship.acc = new THREE.Vector3(0,0,0);
+	spaceship.vel = new THREE.Vector3(0,0,0);
 	spaceship.update = function () {
 
 		const maxTurnSpeed = 1.5;
 		const controlDeadzoneRadius = .07;
 		const controlMaxRadius = .7;
-		const forwardSpeed = 10;
-		const speed = 2;
+		const forwardSpeed = 20;
+		const speed = 10;
 		const mouseX = engine.keys['mouseX'] - window.innerWidth/2;
 		const mouseY = engine.keys['mouseY'] - window.innerHeight/2;
 		const distance = Math.sqrt(mouseX * mouseX + mouseY * mouseY) / (window.innerHeight/2);
@@ -51,17 +53,31 @@ export const engine = new GameEngine(function () {
 			Util.rotateYNoGBL(this.rotation, maxTurnSpeed * mult * (mouseX / (Math.abs(mouseX) + Math.abs(mouseY))) * engine.dt * -1);
 			Util.rotateXNoGBL(this.rotation, maxTurnSpeed * mult * (mouseY / (Math.abs(mouseX) + Math.abs(mouseY))) * engine.dt);
 		}
-		const oldPos = new THREE.Vector3(this.position);
+		const oldPos = new THREE.Vector3().copy(this.position);
 		if (engine.keys['e']) Util.rotateZNoGBL(this.rotation, maxTurnSpeed * engine.dt);
 		if (engine.keys['q']) Util.rotateZNoGBL(this.rotation, maxTurnSpeed * engine.dt * -1);
-		if (engine.keys['shift']) this.position.add(new THREE.Vector3(0,0,1).applyEuler(this.rotation).multiplyScalar(forwardSpeed * engine.dt));
-		else if (engine.keys['w']) this.position.add(new THREE.Vector3(0,0,1).applyEuler(this.rotation).multiplyScalar(speed * engine.dt));
-		if (engine.keys['s']) this.position.add(new THREE.Vector3(0,0,1).applyEuler(this.rotation).multiplyScalar(speed * engine.dt * -1));
-		if (engine.keys['a']) this.position.add(new THREE.Vector3(1,0,0).applyEuler(this.rotation).multiplyScalar(speed * engine.dt));
-		if (engine.keys['d']) this.position.add(new THREE.Vector3(1,0,0).applyEuler(this.rotation).multiplyScalar(speed * engine.dt * -1));
-		if (engine.keys['control']) this.position.add(new THREE.Vector3(0,1,0).applyEuler(this.rotation).multiplyScalar(speed * engine.dt * -1));
-		if (engine.keys[' ']) this.position.add(new THREE.Vector3(0,1,0).applyEuler(this.rotation).multiplyScalar(speed * engine.dt));
-		if (this.position.length() > 60) this.position.copy(oldPos);
+
+		this.acc.set(0,0,0);
+		if (engine.keys['shift']) this.acc.z += forwardSpeed;//.add(new THREE.Vector3(0,0,1).applyEuler(this.rotation).multiplyScalar(forwardSpeed * engine.dt));
+		else if (engine.keys['w']) this.acc.z += speed;//this.position.add(new THREE.Vector3(0,0,1).applyEuler(this.rotation).multiplyScalar(speed * engine.dt));
+		if (engine.keys['s']) this.acc.z -= speed; //this.position.add(new THREE.Vector3(0,0,1).applyEuler(this.rotation).multiplyScalar(speed * engine.dt * -1));
+		if (engine.keys['a']) this.acc.x += speed;//this.position.add(new THREE.Vector3(1,0,0).applyEuler(this.rotation).multiplyScalar(speed * engine.dt));
+		if (engine.keys['d']) this.acc.x -= speed;//this.position.add(new THREE.Vector3(1,0,0).applyEuler(this.rotation).multiplyScalar(speed * engine.dt * -1));
+		if (engine.keys['control']) this.acc.y -= speed;//this.position.add(new THREE.Vector3(0,1,0).applyEuler(this.rotation).multiplyScalar(speed * engine.dt * -1));
+		if (engine.keys[' ']) this.acc.y += speed;//this.position.add(new THREE.Vector3(0,1,0).applyEuler(this.rotation).multiplyScalar(speed * engine.dt));
+		this.acc.applyEuler(this.rotation);
+		this.acc.multiplyScalar(engine.dt);
+
+		this.vel.add(this.acc);
+		let velCopy = new THREE.Vector3();
+		velCopy.copy(this.vel);
+		velCopy.multiplyScalar(engine.dt);
+		this.position.add(velCopy);
+		this.vel.multiplyScalar(Math.pow(.3, engine.dt));
+		//console.log("acc: " + this.acc + ", vel: " + this.vel + ", pos: " + this.position);
+		//console.log(this.vel)
+		
+		if (this.position.length() > 150) this.position.copy(oldPos);
 
 		if (this.lazerCooldown > 0) this.lazerCooldown -= engine.dt;
 		if (this.lazerCooldown <= 0 && engine.keys['m0']) {
@@ -176,7 +192,7 @@ export const engine = new GameEngine(function () {
 		this.smallcircle.style.top = engine.keys['mouseY'] - 15 + "px";
 		this.smallcircle.style.left = engine.keys['mouseX'] - 15 + "px";
 
-		if (score < 5000) this.score.textContent = "Score: " + score;
+		if (score < 10000) this.score.textContent = "Score: " + score;
 		else this.score.textContent = "You Win!";
     };
 });

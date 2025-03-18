@@ -51,7 +51,7 @@ export const engine = new GameEngine(function () {
 			Util.rotateYNoGBL(this.rotation, maxTurnSpeed * mult * (mouseX / (Math.abs(mouseX) + Math.abs(mouseY))) * engine.dt * -1);
 			Util.rotateXNoGBL(this.rotation, maxTurnSpeed * mult * (mouseY / (Math.abs(mouseX) + Math.abs(mouseY))) * engine.dt);
 		}
-
+		const oldPos = new THREE.Vector3(this.position);
 		if (engine.keys['e']) Util.rotateZNoGBL(this.rotation, maxTurnSpeed * engine.dt);
 		if (engine.keys['q']) Util.rotateZNoGBL(this.rotation, maxTurnSpeed * engine.dt * -1);
 		if (engine.keys['shift']) this.position.add(new THREE.Vector3(0,0,1).applyEuler(this.rotation).multiplyScalar(forwardSpeed * engine.dt));
@@ -61,6 +61,7 @@ export const engine = new GameEngine(function () {
 		if (engine.keys['d']) this.position.add(new THREE.Vector3(1,0,0).applyEuler(this.rotation).multiplyScalar(speed * engine.dt * -1));
 		if (engine.keys['control']) this.position.add(new THREE.Vector3(0,1,0).applyEuler(this.rotation).multiplyScalar(speed * engine.dt * -1));
 		if (engine.keys[' ']) this.position.add(new THREE.Vector3(0,1,0).applyEuler(this.rotation).multiplyScalar(speed * engine.dt));
+		if (this.position.length() > 60) this.position.copy(oldPos);
 
 		if (this.lazerCooldown > 0) this.lazerCooldown -= engine.dt;
 		if (this.lazerCooldown <= 0 && engine.keys['m0']) {
@@ -140,7 +141,7 @@ export const engine = new GameEngine(function () {
 		this.position.copy(engine.camera.position);
 	};
 
-	const planetMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 10), new THREE.MeshLambertMaterial({ color: 0x0000ff }));
+	const planetMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 10), new THREE.MeshLambertMaterial({ color: 0x0022ff }));
 	planetMesh.renderOrder = -998;
 	planetMesh.frustumCulled = false;
 	planetMesh.material.depthTest = false;
@@ -175,7 +176,8 @@ export const engine = new GameEngine(function () {
 		this.smallcircle.style.top = engine.keys['mouseY'] - 15 + "px";
 		this.smallcircle.style.left = engine.keys['mouseX'] - 15 + "px";
 
-		this.score.textContent = "Score: " + score;
+		if (score < 5000) this.score.textContent = "Score: " + score;
+		else this.score.textContent = "You Win!";
     };
 });
 

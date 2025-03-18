@@ -127,11 +127,12 @@ export const engine = new GameEngine(function () {
 		map: backgroundTexture,
 		side: THREE.BackSide
 	});
-	backgroundMaterial.depthTest = false;
 
 	const backgroundMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 5), backgroundMaterial);
 	backgroundMesh.renderOrder = -999;
 	backgroundMesh.frustumCulled = false;
+	backgroundMesh.material.depthTest = false;
+	backgroundMesh.material.depthWrite = false;
 
 	const background = new Entity(backgroundMesh);
 
@@ -139,9 +140,20 @@ export const engine = new GameEngine(function () {
 		this.position.copy(engine.camera.position);
 	};
 
+	const planetMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 10), new THREE.MeshLambertMaterial({ color: 0x0000ff }));
+	planetMesh.renderOrder = -998;
+	planetMesh.frustumCulled = false;
+	planetMesh.material.depthTest = false;
+	planetMesh.material.depthWrite = false;
+	const planet = new Entity(planetMesh);
+	planet.update = function() {
+		this.position.copy(engine.camera.position);
+		this.position.add(new THREE.Vector3(1, 2, -4))
+	}
+
 
 	const amblight = new Entity(new THREE.AmbientLight(0xffffffff, .5));
-	const sunlight = new Entity(new THREE.DirectionalLight(0xffffffff, 2)).position.set(1, 1, 0);
+	const sunlight = new Entity(new THREE.DirectionalLight(0xaaffffff, 2)).position.set(1, 1, 0);
 
 
 	const hudManager = new Entity(null);
@@ -153,7 +165,7 @@ export const engine = new GameEngine(function () {
 	hudManager.smallcircle.style.cssText = "position:absolute; top:0; left:0; width:30px; height:30px; border-radius:15px; border-color:rgba(255,255,255,.5);border-style: solid;border-width: medium;";
 	engine.overlay.appendChild(hudManager.smallcircle);
 	hudManager.score = document.createElement("p");
-	hudManager.score.style.cssText = "position:absolute; top:0; left:10px; font-size:60px; color:white;font-family: Verdana, Geneva, Tahoma, sans-serif;";
+	hudManager.score.style.cssText = "position:absolute; top:0; left:10px; font-size:40px; color:white;font-family: Verdana, Geneva, Tahoma, sans-serif;";
 	engine.overlay.appendChild(hudManager.score);
 	hudManager.update = function () {
 		this.bigcircle.style.width = window.innerHeight * .2 + 'px';

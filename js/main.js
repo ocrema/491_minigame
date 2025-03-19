@@ -155,6 +155,7 @@ export const engine = new GameEngine(function () {
 
 	background.update = function () {
 		this.position.copy(engine.camera.position);
+		this.rotation.x += .005 * engine.dt;
 	};
 
 	const planetMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 10), new THREE.MeshLambertMaterial({ color: 0x0022ff }));
